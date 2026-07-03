@@ -360,7 +360,7 @@ export default function CustomerShell() {
           />
         )}
         {screen === "orders" && (
-          <OrdersScreen orders={orders} members={members} memberId={memberId} />
+          <OrdersScreen orders={orders} members={members} memberId={memberId} setScreen={setScreen} />
         )}
         {screen === "bill" && (
           <BillScreen
@@ -724,9 +724,12 @@ function SuggestionCard({ suggestion, members, memberId, onVote }) {
   );
 }
 
-function OrdersScreen({ orders, members, memberId }) {
+function OrdersScreen({ orders, members, memberId, setScreen }) {
   return (
     <div className="pb-24">
+      <div className="orders-pay-action">
+        <button className="primary-btn" onClick={() => setScreen("bill")}>Ready to pay</button>
+      </div>
       <SectionTitle title="Live orders" />
       {orders.map((order) => {
         const owner = members.find((member) => member.memberId === order.memberId);

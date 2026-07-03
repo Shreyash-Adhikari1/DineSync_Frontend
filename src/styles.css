@@ -865,6 +865,14 @@ button {
   gap: 12px;
 }
 
+.orders-pay-action {
+  padding: 16px 20px 2px;
+}
+
+.orders-pay-action .primary-btn {
+  width: 100%;
+}
+
 .order-card.mine,
 .split-card.mine {
   border-left: 4px solid #c4852a;

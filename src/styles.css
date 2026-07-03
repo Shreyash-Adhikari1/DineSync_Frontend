@@ -8,12 +8,26 @@
   box-sizing: border-box;
 }
 
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+html {
+  overflow: hidden;
+}
+
 body {
   margin: 0;
-  min-height: 100vh;
+  min-height: 100svh;
+  overflow: hidden;
   background: #f4f0e8;
   color: #12100e;
   font-family: "DM Sans", system-ui, sans-serif;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 button,
@@ -101,7 +115,12 @@ button {
 
 /* Customer */
 .customer-app {
-  min-height: 100dvh;
+  --customer-shell-width: min(100vw, 480px);
+  --bottom-nav-height: calc(67px + env(safe-area-inset-bottom));
+  --action-bar-height: 73px;
+  width: 100%;
+  height: 100svh;
+  min-height: 100svh;
   max-width: 480px;
   margin: 0 auto;
   background: #faf8f4;
@@ -109,6 +128,19 @@ button {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+}
+
+.customer-entry {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+@supports (height: 100dvh) {
+  .customer-app {
+    height: 100dvh;
+    min-height: 100dvh;
+  }
 }
 
 .join-hero,
@@ -208,8 +240,48 @@ button {
 
 .customer-scroll {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   padding-bottom: 84px;
+}
+
+.customer-scroll.has-action-bar {
+  padding-bottom: calc(var(--bottom-nav-height) + var(--action-bar-height) + 12px);
+}
+
+.customer-scroll.menu-scroll {
+  overflow: hidden;
+  padding-bottom: 0;
+}
+
+.menu-screen {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-controls {
+  flex-shrink: 0;
+  background: #faf8f4;
+  border-bottom: 1px solid rgba(18, 16, 14, 0.06);
+  position: relative;
+  z-index: 2;
+}
+
+.menu-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(var(--bottom-nav-height) + 16px);
+}
+
+.customer-scroll.has-action-bar .menu-list {
+  padding-bottom: calc(var(--bottom-nav-height) + var(--action-bar-height) + 16px);
 }
 
 .customer-hero {
@@ -609,6 +681,13 @@ button {
 }
 
 .bottom-nav {
+  position: fixed;
+  left: 50%;
+  right: auto;
+  bottom: 0;
+  z-index: 30;
+  width: var(--customer-shell-width);
+  transform: translateX(-50%);
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   border-top: 1px solid rgba(18, 16, 14, 0.09);
@@ -637,10 +716,12 @@ button {
 }
 
 .mobile-action-bar {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 67px;
+  position: fixed;
+  left: 50%;
+  right: auto;
+  bottom: var(--bottom-nav-height);
+  width: var(--customer-shell-width);
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -648,7 +729,7 @@ button {
   background: rgba(250, 248, 244, 0.96);
   backdrop-filter: blur(16px);
   padding: 12px 20px;
-  z-index: 20;
+  z-index: 31;
 }
 
 .mobile-action-bar div {

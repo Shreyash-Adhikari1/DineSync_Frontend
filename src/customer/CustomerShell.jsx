@@ -273,7 +273,7 @@ export default function CustomerShell() {
 
   if (screen === "join") {
     return (
-      <main className="customer-app">
+      <main className="customer-app customer-entry">
         <section className="join-hero">
           <div className="brand">Dine<span>Sync</span></div>
           <div className="join-hero-copy">
@@ -301,7 +301,7 @@ export default function CustomerShell() {
 
   if (screen === "privacy") {
     return (
-      <main className="customer-app">
+      <main className="customer-app customer-entry">
         <PrivacyScreen restaurantName={restaurantName} onContinue={() => setScreen("home")} />
       </main>
     );
@@ -317,7 +317,7 @@ export default function CustomerShell() {
 
       {error && <div className="notice error mx-5 mt-3">{error}</div>}
 
-      <section className="customer-scroll">
+      <section className={`customer-scroll ${screen === "menu" ? "menu-scroll" : ""} ${cartItems.length > 0 && screen === "menu" ? "has-action-bar" : ""}`}>
         {screen === "home" && (
           <HomeScreen
             session={session}
@@ -515,33 +515,37 @@ function MenuScreen({ menu, fullMenu, category, setCategory, search, setSearch, 
     drinks: fullMenu.filter((item) => item.category === "drinks").length,
   };
   return (
-    <div className="pb-32">
-      <div className="search-wrap">
-        <Search size={16} />
-        <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search menu..." />
+    <div className="menu-screen">
+      <div className="menu-controls">
+        <div className="search-wrap">
+          <Search size={16} />
+          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search menu..." />
+        </div>
+        <div className="category-tabs">
+          {["all", "mains", "starters", "drinks"].map((item) => (
+            <button key={item} className={category === item ? "active" : ""} onClick={() => setCategory(item)}>
+              {item}<span>{counts[item]}</span>
+            </button>
+          ))}
+        </div>
       </div>
-      <div className="category-tabs">
-        {["all", "mains", "starters", "drinks"].map((item) => (
-          <button key={item} className={category === item ? "active" : ""} onClick={() => setCategory(item)}>
-            {item}<span>{counts[item]}</span>
-          </button>
+      <div className="menu-list">
+        {menu.length > 0 && <FeaturedItem item={menu.find((item) => item.isPopular) || menu[0]} />}
+        <SectionTitle title={category === "all" ? "Menu" : category} />
+        {menu.map((item) => (
+          <MenuCard
+            key={item._id}
+            item={item}
+            quantity={cart[item._id]?.quantity || 0}
+            onAdd={() => addToCart(item, 1)}
+            onRemove={() => addToCart(item, -1)}
+            onDetails={() => openItemDetails(item)}
+            onSuggest={() => suggestItem(item)}
+            canSuggest={!activeSuggestion}
+          />
         ))}
+        {!menu.length && <EmptyState title="No items here" text="Try another category or search term." />}
       </div>
-      {menu.length > 0 && <FeaturedItem item={menu.find((item) => item.isPopular) || menu[0]} />}
-      <SectionTitle title={category === "all" ? "Menu" : category} />
-      {menu.map((item) => (
-        <MenuCard
-          key={item._id}
-          item={item}
-          quantity={cart[item._id]?.quantity || 0}
-          onAdd={() => addToCart(item, 1)}
-          onRemove={() => addToCart(item, -1)}
-          onDetails={() => openItemDetails(item)}
-          onSuggest={() => suggestItem(item)}
-          canSuggest={!activeSuggestion}
-        />
-      ))}
-      {!menu.length && <EmptyState title="No items here" text="Try another category or search term." />}
     </div>
   );
 }

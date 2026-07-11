@@ -1816,10 +1816,13 @@ button {
 }
 
 .business-app {
+  height: 100vh;
+  height: 100dvh;
   min-height: 100vh;
   display: grid;
   grid-template-columns: 260px 1fr;
   background: #f2ede3;
+  overflow: hidden;
 }
 
 .business-sidebar {
@@ -1869,8 +1872,12 @@ button {
 }
 
 .business-main {
+  min-width: 0;
+  min-height: 0;
   padding: 28px;
-  overflow: auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .business-header {

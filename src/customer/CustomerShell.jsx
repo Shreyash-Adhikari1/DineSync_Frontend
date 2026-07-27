@@ -874,48 +874,69 @@ function OrderItemList({ items = [], status }) {
 }
 
 function BillScreen({ bill, members, orders, memberId, payment, paymentMethod, setPaymentMethod, generateBill, createPayment, loading, sessionStatus }) {
+  const [billView, setBillView] = useState("own");
   const total = bill?.totalAmount || orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
   const isClosed = sessionStatus === "closed" || bill?.status === "finalized" || payment?.status === "verified";
+  const memberBreakdown = bill?.perMember || [];
+  const currentMemberShare = memberBreakdown.find((person) => person.memberId === memberId);
+  const evenShare = total / Math.max(1, members.length);
+  const summaryAmount = billView === "all" ? total : billView === "even" ? evenShare : currentMemberShare?.finalAmount || 0;
+  const billViews = [
+    { id: "own", label: "Own share" },
+    { id: "even", label: "Split evenly" },
+    { id: "all", label: "One pays all" },
+  ];
+
   return (
-    <div className="pb-28">
+    <div className="bill-screen pb-28">
       <section className="bill-hero-react">
-        <span>Table bill</span>
+        <span>Final table bill</span>
         <h2>{money(total)}</h2>
-        <p>{members.length} people · one person pays after everyone reviews</p>
+        <p>{members.length} people · {orders.reduce((sum, order) => sum + (order.itemCount || 0), 0)} items total</p>
       </section>
       {!bill && <button className="primary-btn mx-5 mt-4" onClick={generateBill} disabled={loading}>{loading ? "Generating..." : "Generate bill"}</button>}
       {bill && (
         <>
-          <SectionTitle title="Personal items" />
-          {bill.items?.personal?.map((person) => {
-            const member = members.find((item) => item.memberId === person.memberId);
-            return (
-              <article key={person.memberId} className={`split-card ${person.memberId === memberId ? "mine" : ""}`}>
-                <div><strong>{member?.name || person.memberId}{person.memberId === memberId ? " (you)" : ""}</strong><p>{person.items.map((item) => item.name).join(", ") || "No personal items"}</p></div>
-                <b>{money(person.total)}</b>
-              </article>
-            );
-          })}
-          <SectionTitle title="Shared items" />
-          <div className="soft-panel mx-5">
-            {bill.items?.shared?.length ? bill.items.shared.map((item) => (
-              <div className="line-row" key={`${item.menuItemId}-${item.name}`}><span>{item.name} x{item.quantity}</span><strong>{money(item.subtotal)}</strong></div>
-            )) : <p className="muted-text">No shared items yet.</p>}
+          <div className="bill-view-tabs" aria-label="Bill view">
+            {billViews.map((view) => (
+              <button key={view.id} className={billView === view.id ? "active" : ""} onClick={() => setBillView(view.id)}>
+                {view.label}
+              </button>
+            ))}
           </div>
-          <SectionTitle title="Per-member breakdown" />
-          {bill.perMember?.map((person) => {
-            const member = members.find((item) => item.memberId === person.memberId);
-            return (
-              <article key={person.memberId} className="breakdown-card">
-                <strong>{member?.name || person.memberId}</strong>
-                <span>Own {money(person.ownItemsTotal)}</span>
-                <span>Shared {money(person.sharedShare)}</span>
-                <b>{money(person.finalAmount)}</b>
-              </article>
-            );
-          })}
+
+          <div className="bill-member-list">
+            {memberBreakdown.map((person, index) => {
+              const member = members.find((item) => item.memberId === person.memberId);
+              const personal = bill.items?.personal?.find((item) => item.memberId === person.memberId);
+              return (
+                <article key={person.memberId} className={`bill-member-card ${person.memberId === memberId ? "mine" : ""}`}>
+                  <span className={`bill-member-avatar ${swatches[index % swatches.length]}`}>{initials(member?.name || "Guest")}</span>
+                  <div className="bill-member-copy">
+                    <strong>{member?.name || person.memberId}{person.memberId === memberId ? " (you)" : ""}</strong>
+                    <p>{personal?.items?.map((item) => item.name).join(", ") || "No personal items"}</p>
+                    {Number(person.sharedShare) > 0 && <small>Includes {money(person.sharedShare)} shared</small>}
+                  </div>
+                  <div className="bill-member-amount">
+                    <strong>{money(person.finalAmount)}</strong>
+                    <span>Items + shared</span>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+
+          <section className="bill-share-summary">
+            <span>{billView === "all" ? "Full session bill" : billView === "even" ? "Equal share per person" : "Your calculated share"}</span>
+            <strong>{money(summaryAmount)}</strong>
+            <p>{billView === "own" ? "Your items plus your portion of shared dishes." : billView === "even" ? `An even view across ${members.length} people.` : "The amount collected by the single payer."}</p>
+          </section>
+
           <div className="pay-panel">
-            <p>Only one person pays the full session bill. Restaurant staff verifies it manually.</p>
+            <div className="pay-panel-head">
+              <span>Payment method</span>
+              <small>One person pays the full bill</small>
+            </div>
             <div className="method-row">
               {["qr", "cash", "card"].map((method) => (
                 <button key={method} className={paymentMethod === method ? "active" : ""} onClick={() => setPaymentMethod(method)}>

@@ -622,7 +622,7 @@ button {
 .item-detail-body {
   display: grid;
   gap: 16px;
-  padding: 18px 20px 28px;
+  padding: 18px 20px calc(112px + env(safe-area-inset-bottom));
 }
 
 .item-detail-body > p {
@@ -1296,6 +1296,193 @@ button {
   width: 100%;
   background: #faf8f4;
   color: #12100e;
+}
+
+.bill-screen {
+  background: #faf8f4;
+}
+
+.bill-view-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  border-bottom: 1px solid rgba(18, 16, 14, 0.08);
+  background: white;
+  padding: 12px 16px;
+}
+
+.bill-view-tabs button {
+  min-height: 46px;
+  border: 1px solid rgba(18, 16, 14, 0.15);
+  border-radius: 13px;
+  background: white;
+  color: #857d74;
+  padding: 6px 8px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.bill-view-tabs button.active {
+  border-color: #12100e;
+  background: #12100e;
+  color: #faf8f4;
+}
+
+.bill-member-list {
+  display: grid;
+  gap: 10px;
+  padding: 16px 20px 4px;
+}
+
+.bill-member-card {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 86px;
+  border: 1px solid rgba(18, 16, 14, 0.11);
+  border-radius: 16px;
+  background: white;
+  padding: 12px;
+}
+
+.bill-member-card.mine {
+  border-color: rgba(196, 133, 42, 0.42);
+  background: rgba(196, 133, 42, 0.045);
+}
+
+.bill-member-avatar {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  color: white;
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.bill-member-copy {
+  min-width: 0;
+}
+
+.bill-member-copy > strong {
+  display: block;
+  overflow: hidden;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bill-member-copy p {
+  overflow: hidden;
+  margin: 3px 0 0;
+  color: #857d74;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bill-member-copy small {
+  display: block;
+  margin-top: 4px;
+  color: #c4852a;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.bill-member-amount {
+  display: grid;
+  justify-items: end;
+  gap: 3px;
+  text-align: right;
+}
+
+.bill-member-amount strong {
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.bill-member-amount span {
+  color: #857d74;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.bill-share-summary {
+  display: grid;
+  gap: 3px;
+  margin: 14px 20px 0;
+  border-radius: 17px;
+  background:
+    radial-gradient(circle at 90% 15%, rgba(196, 133, 42, 0.18), transparent 34%),
+    #12100e;
+  color: #faf8f4;
+  padding: 18px;
+}
+
+.bill-share-summary > span {
+  color: rgba(250, 248, 244, 0.58);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.bill-share-summary > strong {
+  color: #edd08a;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 34px;
+  font-style: italic;
+}
+
+.bill-share-summary p {
+  margin: 2px 0 0;
+  color: rgba(250, 248, 244, 0.5);
+  font-size: 11px;
+}
+
+.bill-screen .pay-panel {
+  margin-top: 10px;
+  background: white;
+  color: #12100e;
+  box-shadow: 0 12px 32px rgba(18, 16, 14, 0.07);
+}
+
+.pay-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.pay-panel-head span {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.pay-panel-head small {
+  color: #857d74;
+  font-size: 10px;
+}
+
+.bill-screen .method-row button {
+  color: #857d74;
+  border-color: rgba(18, 16, 14, 0.12);
+}
+
+.bill-screen .method-row button.active {
+  color: white;
+  border-color: #c4852a;
+}
+
+.bill-screen .pay-panel .primary-btn {
+  background: #12100e;
+  color: #faf8f4;
 }
 
 .payment-status {
@@ -1993,12 +2180,17 @@ button {
 }
 
 .detail-actions {
-  position: sticky;
+  position: fixed;
+  left: 50%;
+  right: auto;
   bottom: 0;
-  z-index: 5;
-  margin: 4px -20px -28px;
+  z-index: 31;
+  width: var(--customer-shell-width);
+  min-height: calc(82px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  margin: 0;
   border-top: 1px solid rgba(18, 16, 14, 0.08);
-  background: #faf8f4;
+  background: #fff;
   box-shadow: 0 -12px 26px rgba(18, 16, 14, 0.08);
   padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
 }

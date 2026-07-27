@@ -879,6 +879,18 @@ button {
   background: rgba(196, 133, 42, 0.04);
 }
 
+.order-card.group-order-card {
+  border-color: rgba(58, 102, 71, 0.34);
+  border-left: 4px solid #3a6647;
+  background:
+    linear-gradient(135deg, rgba(58, 102, 71, 0.08), transparent 55%),
+    white;
+}
+
+.group-order-card h3 {
+  color: #3a6647;
+}
+
 .order-card div:last-child {
   text-align: right;
 }
@@ -1219,6 +1231,12 @@ button {
   margin-bottom: 6px;
   color: #3a6647;
   font-size: 12px;
+}
+
+.shared-order-list.group {
+  margin-top: 6px;
+  padding-top: 0;
+  border-top: 0;
 }
 
 .bill-hero-react {
@@ -2583,6 +2601,15 @@ button {
   border-top: 1px solid rgba(18, 16, 14, 0.08);
   padding-top: 12px;
   margin-top: 12px;
+}
+
+.order-admin-row.group-admin-order {
+  border: 1px solid rgba(58, 102, 71, 0.24);
+  border-left: 4px solid #3a6647;
+  border-radius: 12px;
+  background: rgba(58, 102, 71, 0.05);
+  margin-top: 14px;
+  padding: 14px;
 }
 
 .bill-admin-head {

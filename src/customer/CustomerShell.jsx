@@ -744,19 +744,20 @@ function OrdersScreen({ orders, members, memberId, setScreen, onViewStatus }) {
       </div>
       <SectionTitle title="Live orders" />
       {orders.map((order) => {
+        const isGroupOrder = order.memberId?.startsWith("GROUP_");
         const owner = members.find((member) => member.memberId === order.memberId);
         return (
           <article
             key={order._id}
-            className={`order-card order-card-clickable ${order.memberId === memberId ? "mine" : ""}`}
+            className={`order-card order-card-clickable ${order.memberId === memberId ? "mine" : ""} ${isGroupOrder ? "group-order-card" : ""}`}
             onClick={() => onViewStatus(order._id)}
           >
             <div>
-              <h3>{owner?.name || order.memberId}</h3>
-              <OrderItemList items={order.items} />
+              <h3>{isGroupOrder ? "Group item" : owner?.name || order.memberId}</h3>
+              {!isGroupOrder && <OrderItemList items={order.items} />}
               {order.sharedItems?.length > 0 && (
-                <div className="shared-order-list">
-                  <strong>Shared items</strong>
+                <div className={`shared-order-list ${isGroupOrder ? "group" : ""}`}>
+                  <strong>{isGroupOrder ? "Approved by the table · quantity 1" : "Shared items"}</strong>
                   <OrderItemList items={order.sharedItems} status={order.status} />
                 </div>
               )}
@@ -764,7 +765,7 @@ function OrdersScreen({ orders, members, memberId, setScreen, onViewStatus }) {
             <div className="order-card-side">
               <strong>{money(order.totalAmount)}</strong>
               <span>{statusLabel(order.status)}</span>
-              <button className="view-status-btn" onClick={() => onViewStatus(order._id)} aria-label={`View status for ${owner?.name || "this order"}`}>
+              <button className="view-status-btn" onClick={() => onViewStatus(order._id)} aria-label={`View status for ${isGroupOrder ? "this group item" : owner?.name || "this order"}`}>
                 <Eye size={16} />
                 <span>View status</span>
               </button>
@@ -790,6 +791,7 @@ function OrderStatusScreen({ order, members, onBack }) {
   }
 
   const owner = members.find((member) => member.memberId === order.memberId);
+  const isGroupOrder = order.memberId?.startsWith("GROUP_");
   const activeIndex = Math.max(0, orderSteps.findIndex((step) => step.id === order.status));
   const allItems = [...(order.items || []), ...(order.sharedItems || [])];
   const statusCopy = {
@@ -839,7 +841,7 @@ function OrderStatusScreen({ order, members, onBack }) {
           </div>
         )}
 
-        <SectionTitle title={`${owner?.name || "Guest"}'s items`} />
+        <SectionTitle title={isGroupOrder ? "Group item" : `${owner?.name || "Guest"}'s items`} />
         <div className="status-item-list">
           {allItems.map((item, index) => (
             <div className="status-item-row" key={`${item.menuItemId || item.name}-${index}`}>

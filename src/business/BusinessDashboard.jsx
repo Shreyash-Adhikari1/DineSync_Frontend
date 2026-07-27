@@ -533,14 +533,16 @@ function OrdersPanel({ sessions, ordersBySession, reload, setError }) {
       {sessions.map((session) => (
         <div className="dash-card" key={session._id}>
           <h2>Table {session.tableNumber} · {statusLabel(session.status)}</h2>
-          {(ordersBySession[session._id] || []).map((order) => (
-            <div className="order-admin-row" key={order._id}>
+          {(ordersBySession[session._id] || []).map((order) => {
+            const isGroupOrder = order.memberId?.startsWith("GROUP_");
+            return (
+            <div className={`order-admin-row ${isGroupOrder ? "group-admin-order" : ""}`} key={order._id}>
               <div>
-                <strong>{order.orderCode}</strong>
-                <BusinessOrderItems items={order.items} />
+                <strong>{isGroupOrder ? `Group item · ${order.orderCode}` : order.orderCode}</strong>
+                {!isGroupOrder && <BusinessOrderItems items={order.items} />}
                 {order.sharedItems?.length > 0 && (
                   <div className="shared-admin-items">
-                    <small>Shared items · {statusLabel(order.status)}</small>
+                    <small>{isGroupOrder ? "Approved table suggestion · quantity 1" : "Shared items"} · {statusLabel(order.status)}</small>
                     <BusinessOrderItems items={order.sharedItems} />
                   </div>
                 )}
@@ -550,7 +552,8 @@ function OrdersPanel({ sessions, ordersBySession, reload, setError }) {
                 {order.status === "ordered" ? "Start cooking" : order.status === "cooking" ? "Mark cooked" : order.status === "ready" ? "Mark served" : statusLabel(order.status)}
               </button>
             </div>
-          ))}
+            );
+          })}
         </div>
       ))}
     </div>

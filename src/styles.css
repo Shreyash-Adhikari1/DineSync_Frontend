@@ -1995,10 +1995,11 @@ button {
 .detail-actions {
   position: sticky;
   bottom: 0;
+  z-index: 5;
   margin: 4px -20px -28px;
   border-top: 1px solid rgba(18, 16, 14, 0.08);
-  background: rgba(250, 248, 244, 0.94);
-  backdrop-filter: blur(18px);
+  background: #faf8f4;
+  box-shadow: 0 -12px 26px rgba(18, 16, 14, 0.08);
   padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
 }
 

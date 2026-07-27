@@ -316,11 +316,13 @@ export default function CustomerShell() {
 
   return (
     <main className="customer-app">
-      <CustomerTopBar
+      {screen !== "home" && (
+        <CustomerTopBar
         title={screen === "payment" ? "Payment Status" : screen === "itemDetails" ? "Item Details" : screen === "orderStatus" ? "Order Status" : restaurantName}
         subtitle={`Table ${session?.tableNumber || "-"} · ${members.length} members`}
         onBack={() => (screen === "payment" ? setScreen("bill") : screen === "itemDetails" ? setScreen("menu") : screen === "orderStatus" ? setScreen("orders") : setScreen("home"))}
-      />
+        />
+      )}
 
       {error && <div className="notice error mx-5 mt-3">{error}</div>}
 
@@ -808,7 +810,7 @@ function OrderStatusScreen({ order, members, onBack }) {
         <div className="live-pill"><i aria-hidden="true" />Live</div>
         <h2>{headline}</h2>
         <p>{description}</p>
-        <span className="order-reference">Order #{String(order._id).slice(-6).toUpperCase()}</span>
+        <span className="order-reference">{order.orderCode || order._id}</span>
       </section>
 
       <section className="status-content">
@@ -841,8 +843,11 @@ function OrderStatusScreen({ order, members, onBack }) {
         <div className="status-item-list">
           {allItems.map((item, index) => (
             <div className="status-item-row" key={`${item.menuItemId || item.name}-${index}`}>
-              <div><strong>{item.name}</strong><span>Qty {item.quantity}</span></div>
-              <b>{money(Number(item.price || 0) * Number(item.quantity || 1))}</b>
+              <div>
+                <strong>{item.name}</strong>
+                <span>{item.quantity} × {money(item.unitPrice ?? item.price ?? 0)}</span>
+              </div>
+              <b>{money(item.subtotal ?? (Number(item.unitPrice ?? item.price ?? 0) * Number(item.quantity || 1)))}</b>
             </div>
           ))}
           <div className="status-total"><span>Order total</span><strong>{money(order.totalAmount)}</strong></div>

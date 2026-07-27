@@ -17,11 +17,11 @@ export const statusLabel = (status = "") =>
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
 
-export const itemPayload = (item, quantity = 1, specialInstructions = "", allergens = undefined) => ({
+export const itemPayload = (item, quantity = 1, specialInstructions = "", allergens = []) => ({
   menuItemId: item._id,
   name: item.name,
   price: Number(item.price || 0),
   quantity,
-  allergens: allergens ?? item.allergens ?? item.commonAllergens ?? [],
+  allergens: Array.isArray(allergens) ? allergens : [],
   specialInstructions,
 });

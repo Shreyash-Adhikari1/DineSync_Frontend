@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, BellRing, Check, CreditCard, Home, Info, ListChecks, Plus, ReceiptText, Search, ShieldCheck, Sparkles, Utensils } from "lucide-react";
+import { ArrowLeft, BellRing, Check, ChefHat, CircleCheck, Clock3, CreditCard, Eye, Home, Info, ListChecks, Plus, ReceiptText, Search, ShieldCheck, Sparkles, Utensils } from "lucide-react";
 import { billApi } from "../api/bill";
 import { getErrorMessage } from "../api/http";
 import { menuApi } from "../api/menu";
@@ -57,6 +57,7 @@ export default function CustomerShell() {
   const [paymentMethod, setPaymentMethod] = useState("qr");
   const [selectedItem, setSelectedItem] = useState(null);
   const [itemDetailLoading, setItemDetailLoading] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
 
   const activeSessionId = session?._id || routeSessionId;
 
@@ -136,6 +137,12 @@ export default function CustomerShell() {
     session?.restaurant?.restaurantName ||
     session?.restaurantId?.restaurantName ||
     "DineSync";
+  const selectedOrder = orders.find((order) => order._id === selectedOrderId);
+
+  function openOrderStatus(orderId) {
+    setSelectedOrderId(orderId);
+    setScreen("orderStatus");
+  }
 
   const filteredMenu = menu.filter((item) => {
     const inCategory = category === "all" || item.category === category;
@@ -310,9 +317,9 @@ export default function CustomerShell() {
   return (
     <main className="customer-app">
       <CustomerTopBar
-        title={screen === "payment" ? "Payment Status" : screen === "itemDetails" ? "Item Details" : restaurantName}
+        title={screen === "payment" ? "Payment Status" : screen === "itemDetails" ? "Item Details" : screen === "orderStatus" ? "Order Status" : restaurantName}
         subtitle={`Table ${session?.tableNumber || "-"} · ${members.length} members`}
-        onBack={() => (screen === "payment" ? setScreen("bill") : screen === "itemDetails" ? setScreen("menu") : setScreen("home"))}
+        onBack={() => (screen === "payment" ? setScreen("bill") : screen === "itemDetails" ? setScreen("menu") : screen === "orderStatus" ? setScreen("orders") : setScreen("home"))}
       />
 
       {error && <div className="notice error mx-5 mt-3">{error}</div>}
@@ -360,7 +367,10 @@ export default function CustomerShell() {
           />
         )}
         {screen === "orders" && (
-          <OrdersScreen orders={orders} members={members} memberId={memberId} setScreen={setScreen} />
+          <OrdersScreen orders={orders} members={members} memberId={memberId} setScreen={setScreen} onViewStatus={openOrderStatus} />
+        )}
+        {screen === "orderStatus" && (
+          <OrderStatusScreen order={selectedOrder} members={members} onBack={() => setScreen("orders")} />
         )}
         {screen === "bill" && (
           <BillScreen
@@ -400,7 +410,7 @@ export default function CustomerShell() {
         </div>
       )}
 
-      {screen !== "payment" && screen !== "itemDetails" && (
+      {screen !== "payment" && screen !== "itemDetails" && screen !== "orderStatus" && (
         <nav className="bottom-nav">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -724,7 +734,7 @@ function SuggestionCard({ suggestion, members, memberId, onVote }) {
   );
 }
 
-function OrdersScreen({ orders, members, memberId, setScreen }) {
+function OrdersScreen({ orders, members, memberId, setScreen, onViewStatus }) {
   return (
     <div className="pb-24">
       <div className="orders-pay-action">
@@ -734,7 +744,11 @@ function OrdersScreen({ orders, members, memberId, setScreen }) {
       {orders.map((order) => {
         const owner = members.find((member) => member.memberId === order.memberId);
         return (
-          <article key={order._id} className={`order-card ${order.memberId === memberId ? "mine" : ""}`}>
+          <article
+            key={order._id}
+            className={`order-card order-card-clickable ${order.memberId === memberId ? "mine" : ""}`}
+            onClick={() => onViewStatus(order._id)}
+          >
             <div>
               <h3>{owner?.name || order.memberId}</h3>
               <OrderItemList items={order.items} />
@@ -745,11 +759,96 @@ function OrdersScreen({ orders, members, memberId, setScreen }) {
                 </div>
               )}
             </div>
-            <div><strong>{money(order.totalAmount)}</strong><span>{statusLabel(order.status)}</span></div>
+            <div className="order-card-side">
+              <strong>{money(order.totalAmount)}</strong>
+              <span>{statusLabel(order.status)}</span>
+              <button className="view-status-btn" onClick={() => onViewStatus(order._id)} aria-label={`View status for ${owner?.name || "this order"}`}>
+                <Eye size={16} />
+                <span>View status</span>
+              </button>
+            </div>
           </article>
         );
       })}
       {!orders.length && <EmptyState title="No orders yet" text="Your table order appears here as people confirm." />}
+    </div>
+  );
+}
+
+const orderSteps = [
+  { id: "ordered", label: "Ordered", icon: Check },
+  { id: "cooking", label: "Cooking", icon: ChefHat },
+  { id: "ready", label: "Ready", icon: BellRing },
+  { id: "served", label: "Served", icon: CircleCheck },
+];
+
+function OrderStatusScreen({ order, members, onBack }) {
+  if (!order) {
+    return <EmptyState title="Order not found" text="This order may no longer be available. Go back to the orders list and try again." />;
+  }
+
+  const owner = members.find((member) => member.memberId === order.memberId);
+  const activeIndex = Math.max(0, orderSteps.findIndex((step) => step.id === order.status));
+  const allItems = [...(order.items || []), ...(order.sharedItems || [])];
+  const statusCopy = {
+    ordered: ["Order placed!", "The kitchen has your order."],
+    cooking: ["Freshly cooking", "Your food is being prepared."],
+    ready: ["Ready to serve", "Your order is ready and on its way."],
+    served: ["Order served", "Enjoy your meal!"],
+    cancelled: ["Order cancelled", "Please speak with a member of staff."],
+  };
+  const [headline, description] = statusCopy[order.status] || statusCopy.ordered;
+
+  return (
+    <div className="order-status-screen">
+      <section className="order-status-hero">
+        <div className={`status-hero-icon ${order.status === "cancelled" ? "cancelled" : ""}`}>
+          {order.status === "cancelled" ? "!" : <Check size={42} strokeWidth={3.5} />}
+        </div>
+        <div className="live-pill"><i aria-hidden="true" />Live</div>
+        <h2>{headline}</h2>
+        <p>{description}</p>
+        <span className="order-reference">Order #{String(order._id).slice(-6).toUpperCase()}</span>
+      </section>
+
+      <section className="status-content">
+        <div className="status-section-head">
+          <span>Live status</span>
+          <strong>{statusLabel(order.status)}</strong>
+        </div>
+        <div className="order-progress" style={{ "--progress": `${(activeIndex / (orderSteps.length - 1)) * 100}%` }}>
+          <div className="progress-line" aria-hidden="true"><span /></div>
+          {orderSteps.map((step, index) => {
+            const Icon = step.icon;
+            const state = index < activeIndex ? "complete" : index === activeIndex ? "active" : "upcoming";
+            return (
+              <div className={`progress-step ${state}`} key={step.id}>
+                <div className="progress-icon">{index < activeIndex ? <Check size={20} strokeWidth={3} /> : <Icon size={20} />}</div>
+                <span>{step.label}</span>
+              </div>
+            );
+          })}
+        </div>
+
+        {order.status !== "served" && order.status !== "cancelled" && (
+          <div className="order-time-card">
+            <Clock3 size={25} />
+            <div><strong>{order.status === "ready" ? "Arriving shortly" : "Est. 15–20 minutes"}</strong><span>We’ll keep this page updated live.</span></div>
+          </div>
+        )}
+
+        <SectionTitle title={`${owner?.name || "Guest"}'s items`} />
+        <div className="status-item-list">
+          {allItems.map((item, index) => (
+            <div className="status-item-row" key={`${item.menuItemId || item.name}-${index}`}>
+              <div><strong>{item.name}</strong><span>Qty {item.quantity}</span></div>
+              <b>{money(Number(item.price || 0) * Number(item.quantity || 1))}</b>
+            </div>
+          ))}
+          <div className="status-total"><span>Order total</span><strong>{money(order.totalAmount)}</strong></div>
+        </div>
+        <button className="status-back-btn" onClick={onBack}><ArrowLeft size={17} />Back to all orders</button>
+      </section>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, BellRing, Check, ChefHat, CircleCheck, Clock3, CreditCard, Eye, Home, Info, ListChecks, Plus, ReceiptText, Search, ShieldCheck, Sparkles, Utensils } from "lucide-react";
+import { ArrowLeft, BellRing, Check, ChefHat, CircleCheck, Clock3, CreditCard, CupSoda, Eye, Home, Info, ListChecks, Plus, ReceiptText, Search, ShieldCheck, Sparkles, Utensils } from "lucide-react";
 import { billApi } from "../api/bill";
 import { getErrorMessage } from "../api/http";
 import { menuApi } from "../api/menu";
@@ -978,16 +978,28 @@ function DrinkNudge({ drinks, onClose, onSeeDrinks, onConfirmAnyway }) {
     <div className="modal-backdrop">
       <section className="suggestion-modal drink-nudge-modal">
         <span>Quick suggestion</span>
+        <div className="drink-nudge-art" aria-hidden="true">
+          <i />
+          <CupSoda size={42} strokeWidth={1.8} />
+          <Sparkles size={17} />
+        </div>
         <h2>Want something to drink?</h2>
-        <p>Nobody has added drinks yet. You can add one now or keep the order moving.</p>
+        <p>Nobody has ordered drinks yet.<br />A good meal deserves something to wash it down.</p>
         <div className="drink-grid">
-          {drinks.map((drink) => <button key={drink._id} onClick={onSeeDrinks}>{drink.name}<span>{money(drink.price)}</span></button>)}
+          {drinks.map((drink) => (
+            <button key={drink._id} onClick={onSeeDrinks}>
+              <span className="drink-thumb">
+                {drink.imageUrl ? <img src={uploadsUrl(drink.imageUrl)} alt="" /> : <CupSoda size={21} />}
+              </span>
+              <span className="drink-option-copy"><strong>{drink.name}</strong><small>{money(drink.price)}</small></span>
+            </button>
+          ))}
         </div>
         <div className="drink-nudge-actions">
-          <button className="primary-btn" onClick={onSeeDrinks}>View drinks menu</button>
-          <button onClick={onConfirmAnyway}>Continue without adding</button>
+          <button className="primary-btn" onClick={onSeeDrinks}>See full drinks menu</button>
+          <button onClick={onConfirmAnyway}>No thanks, continue order</button>
         </div>
-        <button className="text-btn" onClick={onClose}>Go back</button>
+        <button className="drink-back-btn" onClick={onClose}><ArrowLeft size={14} />Back to order</button>
       </section>
     </div>
   );
